@@ -54,6 +54,10 @@ from vllm.model_executor.models.utils import (AutoWeightsLoader, PPMissingLayer,
                     make_empty_intermediate_tensors_factory, make_layers,
                     maybe_prefix)
 
+# 加给vllm_ascend的
+from vllm_ascend.quantization.quant_config import AscendQuantConfig
+from vllm.forward_context import get_forward_context
+
 from vllm_custom.model_executor.layers.quantization.utils.fake_quant_utils import ActivationQuantizer
 from vllm_custom.model_executor.layers.quantization.utils.flatquant_utils import SVDSingleTransMatrix, SVDDecomposeTransMatrix, InvSingleTransMatrix, InvDecomposeTransMatrix
 from vllm_custom.model_executor.layers.quantization.utils.flatquant_utils import get_decompose_dim
@@ -67,7 +71,8 @@ class LlamaMLP(nn.Module):
         intermediate_size: int,
         hidden_act: str,
         fake_quant_config: dict,
-        quant_config: Optional[QuantizationConfig] = None,
+        # quant_config: Optional[QuantizationConfig] = None,
+        quant_config: Optional[AscendQuantConfig] = None,
         bias: bool = False,
         prefix: str = "",
     ) -> None:
@@ -137,7 +142,8 @@ class LlamaAttention(nn.Module):
                  rope_scaling: Optional[Dict[str, Any]] = None,
                  max_position_embeddings: int = 8192,
                  fake_quant_config: dict = None,
-                 quant_config: Optional[QuantizationConfig] = None,
+                 # quant_config: Optional[QuantizationConfig] = None,
+                 quant_config: Optional[AscendQuantConfig] = None,
                  bias: bool = False,
                  bias_o_proj: bool = False,
                  cache_config: Optional[CacheConfig] = None,
@@ -276,7 +282,8 @@ class LlamaAttention(nn.Module):
             k = self.kcache_trans(k)
         k = self.k_cache_quant(k)
         v = self.v_cache_quant(v)
-        attn_output = self.attn(q, k, v, kv_cache, attn_metadata)
+        # attn_output = self.attn(q, k, v, kv_cache, attn_metadata)
+        attn_output = self.attn(q, k, v)
         if self.o_trans is not None:
             init_shape = attn_output.shape
             attn_output = attn_output.reshape(-1, self.num_heads, self.head_dim)
@@ -296,7 +303,8 @@ class LlamaDecoderLayer(nn.Module):
         self,
         config: LlamaConfig,
         cache_config: Optional[CacheConfig] = None,
-        quant_config: Optional[QuantizationConfig] = None,
+        # quant_config: Optional[QuantizationConfig] = None,
+        quant_config: Optional[AscendQuantConfig] = None,
         prefix: str = "",
     ) -> None:
         super().__init__()
@@ -352,9 +360,9 @@ class LlamaDecoderLayer(nn.Module):
         self,
         positions: torch.Tensor,
         hidden_states: torch.Tensor,
-        kv_cache: torch.Tensor,
-        attn_metadata: AttentionMetadata,
-        residual: Optional[torch.Tensor],
+        kv_cache: torch.Tensor = None,
+        attn_metadata: AttentionMetadata = None,
+        residual: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Self Attention
         if residual is None:
@@ -431,9 +439,9 @@ class LlamaModel(nn.Module):
         self,
         input_ids: Optional[torch.Tensor],
         positions: torch.Tensor,
-        kv_caches: List[torch.Tensor],
-        attn_metadata: AttentionMetadata,
-        intermediate_tensors: Optional[IntermediateTensors],
+        kv_caches: List[torch.Tensor] = None,
+        attn_metadata: AttentionMetadata = None,
+        intermediate_tensors: Optional[IntermediateTensors] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, IntermediateTensors]:
         if get_pp_group().is_first_rank:
@@ -449,9 +457,13 @@ class LlamaModel(nn.Module):
 
         for i in range(self.start_layer, self.end_layer):
             layer = self.layers[i]
-            hidden_states, residual = layer(positions, hidden_states,
-                                            kv_caches[i - self.start_layer],
-                                            attn_metadata, residual)
+            hidden_states, residual = layer(
+                positions, 
+                hidden_states,
+                # 仿照vllm_ascend.models.deepseek_v2修改
+                kv_caches[i - self.start_layer] if kv_caches is not None else None,
+                attn_metadata, 
+                residual)
 
         if not get_pp_group().is_last_rank:
             return IntermediateTensors({
@@ -659,8 +671,8 @@ class LlamaFlatQuantForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
         self,
         input_ids: torch.Tensor,
         positions: torch.Tensor,
-        kv_caches: List[torch.Tensor],
-        attn_metadata: AttentionMetadata,
+        kv_caches: List[torch.Tensor] = None,
+        attn_metadata: AttentionMetadata = None,
         intermediate_tensors: Optional[IntermediateTensors] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, IntermediateTensors]:
