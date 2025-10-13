@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update the vllm-ascend image
-export IMAGE=quay.io/ascend/vllm-ascend:v0.10.0rc1
+export IMAGE=crpi-2k5il0jyr1sa5bw6.cn-hangzhou.personal.cr.aliyuncs.com/fang1767/vllm-ascend-qrmn:latest
 
 # 请根据自己的实际情况和需要修改device对应的npu序号
 # 镜像内的Python版本为3.11
