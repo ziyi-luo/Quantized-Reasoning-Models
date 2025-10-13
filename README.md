@@ -59,7 +59,6 @@ python -m make_stats_table --stats acc --models DeepSeek-R1-Distill-Qwen-7B --me
 
 评测结果会默认保存到 ./outputs/inference/ 文件夹下。
 
-备注：对于FlatQuant模型，正常使用重参数化请注意注意模型的config文件中使用自定义的Qwen2FlatQuantForCausalLM类，不使用重参数化则模型的config文件中使用Qwen2ForCausalLM类。另外FlatQuant模型由于使用自定义类注册进vllm来进行评测，速度慢是正常的。速度慢和速度不稳定现象的原因尚待探明。
 ### 问答数据集评测
 参考FlatQuant库中选取的问答数据集，添加了使用lighteval库进行问答测试的代码。现在可以像测试推理数据集一样，方便地测试问答数据集了。相关的代码文件在inference_qa.py中，命令文件在./scripts/inference_qa.sh文件中，具体数据集的lighteval配置文件在./lighteval_custom/tasks/qa.py 文件中。具体的使用方法与推理数据集评测类似：
 ```shell
@@ -81,7 +80,7 @@ python test1.py
 # 测试模型能否通过transformers库正常进行推理
 python test2.py
 ```
-备注：正常使用FlatQuant方法量化后的模型，由于使用了重参数化，需要适配自定义的Qwen2FlatQuantForCausalLM类和相关的一系列自定义类，所以使用transformers库中的默认类进行推理，生成乱码是正常现象。如果FlatQuant方法中不进行重参数化，那么应该使用默认类进行推理来正常生成。
+
 
 ## 量化方法说明
 ### PPL说明
