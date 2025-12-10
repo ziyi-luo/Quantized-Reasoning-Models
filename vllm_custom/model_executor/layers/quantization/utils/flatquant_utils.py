@@ -2,6 +2,7 @@ import math
 import numpy as np
 from scipy.linalg import qr
 import torch
+import torch_npu
 import torch.nn as nn
 
 

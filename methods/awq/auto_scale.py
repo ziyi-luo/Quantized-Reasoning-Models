@@ -1,4 +1,5 @@
 import torch
+import torch_npu
 import torch.nn as nn
 
 from transformers.models.bloom.modeling_bloom import BloomBlock, BloomGelu
@@ -377,10 +378,10 @@ def apply_scale(module, scales_list, input_feat_dict=None):
 
         dev = next(layers[0].parameters()).device
         if dev.type == "cpu":
-            prev_op.cuda()
+            prev_op.npu()
             for layer in layers:
-                layer.cuda()
-            scales.cuda()
+                layer.npu()
+            scales.npu()
         else:
             scales.to(dev)
         

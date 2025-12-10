@@ -1,6 +1,7 @@
 import gc
 
 import torch
+import torch_npu
 import torch.nn as nn
 
 from .quantizer import pseudo_quantize_tensor
@@ -60,7 +61,7 @@ def auto_clip_layer(w, input_feat, n_bit, q_config,
     del input_feat
     del org_out
     gc.collect()
-    torch.cuda.empty_cache()
+    torch.npu.empty_cache()
     return best_max_val.squeeze(1)
 
 
@@ -77,7 +78,7 @@ def auto_clip_block(module,
         # due to qk bmm, it is hard to clip precisely
         if any([_ in name for _ in ["q_", "k_", "query", "key", "Wqkv"]]):
             continue
-        named_linears[name].cuda()
+        named_linears[name].npu()
         max_val = auto_clip_layer(
             named_linears[name].weight, input_feat[name], n_bit=w_bit, q_config=q_config)
         clip_list.append((name, max_val))
@@ -92,7 +93,7 @@ def apply_clip(module, clip_list):
         layer = get_op_by_name(module, name)
         dev = layer.weight.device
         if dev.type == "cpu":
-            layer.cuda()
+            layer.npu()
         max_val = max_val.to(layer.weight.device)
         org_shape = layer.weight.shape
         layer.weight.data = layer.weight.data.reshape(*max_val.shape[:2], -1)

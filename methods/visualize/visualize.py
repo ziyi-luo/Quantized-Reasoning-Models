@@ -3,6 +3,7 @@ import argparse
 from tqdm import tqdm
 
 import torch
+import torch_npu
 import transformers
 
 from ..utils import utils

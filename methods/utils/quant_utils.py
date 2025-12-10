@@ -1,6 +1,7 @@
 import math
 import transformers
 import torch
+import torch_npu
 
 
 def get_minq_maxq(bits, sym):

@@ -1,4 +1,5 @@
 import torch
+import torch_npu
 from datasets import load_dataset
 
 

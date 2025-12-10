@@ -5,6 +5,7 @@ import argparse
 from tqdm import tqdm
 
 import torch
+import torch_npu
 import transformers
 from vllm import LLM
 from vllm.engine.arg_utils import PoolerConfig
@@ -61,7 +62,8 @@ def parser_gen():
 
     # Distributed settings
     # args.tensor_parallel_size = torch.cuda.device_count()
-    args.tensor_parallel_size = 4
+    args.tensor_parallel_size = torch.npu.device_count()    
+    # args.tensor_parallel_size = 4
 
     return args
 
@@ -122,7 +124,7 @@ def main(args):
 
     random.seed(args.seed)
     os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
-
+    clean_up()
     if args.debug:
         import debugpy
         debugpy.listen(5678)

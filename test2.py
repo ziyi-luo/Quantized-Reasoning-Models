@@ -2,6 +2,7 @@
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import torch_npu
 
 # 模型名称（可以换成本地路径或 HuggingFace Hub 的模型名）
 model_name = "PATH_TO_MODEL"

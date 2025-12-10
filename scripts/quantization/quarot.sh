@@ -8,7 +8,7 @@ model_name=$(basename "$model")
 
 bits=("4" "8")
 for BITS in "${bits[@]}"; do
-    CUDA_VISIBLE_DEVICES=${device} \
+    ASCEND_RT_VISIBLE_DEVICES=${device} \
     python -m methods.quarot_gptq.save_fake_quant \
         --model ${model} \
         --rotate \

@@ -5,7 +5,7 @@ export IMAGE=crpi-2k5il0jyr1sa5bw6.cn-hangzhou.personal.cr.aliyuncs.com/fang1767
 
 # 请根据自己的实际情况和需要修改device对应的npu序号
 # 镜像内的Python版本为3.11
-docker run --name vllm-ascend01 \
+docker run --name vllm-ascend02 \
     --device=/dev/davinci_manager \
     --device=/dev/devmm_svm \
     --device=/dev/hisi_hdc \
@@ -20,5 +20,5 @@ docker run --name vllm-ascend01 \
     -v /etc/ascend_install.info:/etc/ascend_install.info \
     -v /root/.cache:/root/.cache \
     -v /data:/data \
-    -p 8001:8000 \
+    -p 8002:8000 \
     -it -d $IMAGE bash

@@ -1,4 +1,5 @@
 import torch
+import torch_npu
 from tqdm import tqdm
 from .qmodule import ScaledActivation
 from .module import set_op_by_name

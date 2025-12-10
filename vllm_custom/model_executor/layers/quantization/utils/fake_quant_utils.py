@@ -1,4 +1,5 @@
 import torch
+import torch_npu
 
 def round_ste(x: torch.Tensor):
     """

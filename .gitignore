@@ -6,3 +6,5 @@ datasets*
 *experiments*
 tmp/
 sparse_logs/
+kernel_meta/
+*.log

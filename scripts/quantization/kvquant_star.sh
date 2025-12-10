@@ -9,7 +9,7 @@ model_name=$(basename "$model")
 bits=("3" "4")
 for BITS in "${bits[@]}"; do
     if [[ "$model_name" == "DeepSeek-R1-Distill-Qwen-1.5B" ]] || [[ "$model_name" == "DeepSeek-R1-Distill-Qwen-7B" ]]; then
-        CUDA_VISIBLE_DEVICES=${device} \
+        ASCEND_RT_VISIBLE_DEVICES=${device} \
         python -m methods.kvquant_star.save_fake_quant \
             --model ${model} \
             --k_bits ${BITS} --k_asym --k_pre_bias \
@@ -18,7 +18,7 @@ for BITS in "${bits[@]}"; do
             --tp ${tp} \
             --save_qmodel_path ./outputs/modelzoo/kvquant_star/${model_name}-kvquant_star-kv${BITS}-tp${tp}
     else
-        CUDA_VISIBLE_DEVICES=${device} \
+        ASCEND_RT_VISIBLE_DEVICES=${device} \
         python -m methods.kvquant_star.save_fake_quant \
             --model ${model} \
             --k_bits ${BITS} --k_asym \

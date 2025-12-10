@@ -1,6 +1,7 @@
 import argparse
 import pprint
 import torch
+import torch_npu
 import random
 import numpy as np
 import logging
@@ -17,8 +18,9 @@ from accelerate.utils import get_balanced_memory
 # DEV = torch.device('npu') if torch.npu.is_available() else torch.device('cpu')
 
 import os
-device_id = int(os.getenv('ASCEND_VISIBLE_DEVICES', 0))  # 从环境变量获取设备编号
-DEV = torch.device(f'npu:{device_id}' if torch.npu.is_available() else 'cpu')
+# device_id = int(os.getenv('ASCEND_VISIBLE_DEVICES', 0))  # 从环境变量获取设备编号
+# DEV = torch.device(f'npu:{device_id}' if torch.npu.is_available() else 'cpu')
+DEV = torch.device('npu:0' if torch.npu.is_available() else 'cpu')
 
 
 def set_seed(seed):

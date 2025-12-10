@@ -4,6 +4,7 @@ import tqdm
 import logging
 
 import torch
+import torch_npu
 import torch.nn as nn
 
 from . import utils

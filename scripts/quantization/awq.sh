@@ -6,7 +6,7 @@ device=${3} # 0
 
 model_name=$(basename "$model")
 
-bits=("3" "4")
+bits=("3")
 for BITS in "${bits[@]}"; do
     ASCEND_VISIBLE_DEVICES=${device} \
     python -m methods.awq.run_awq \

@@ -5,7 +5,7 @@ devices=$2  # 0,1,2,3
 
 model_name=$(basename "$model")
 
-CUDA_VISIBLE_DEVICES=${devices} \
+ASCEND_RT_VISIBLE_DEVICES=${devices} \
 python inference.py \
     --model $model \
     --dataset NuminaMath-1.5 \

@@ -8,7 +8,7 @@ model_name=$(basename "$model")
 
 bits=("3" "4")
 for BITS in "${bits[@]}"; do
-    CUDA_VISIBLE_DEVICES=${device} \
+    ASCEND_RT_VISIBLE_DEVICES=${device} \
     python -m methods.quarot_gptq.save_fake_quant \
         --model ${model} \
         --k_bits ${BITS} --k_asym --k_groupsize 128 --k_clip_ratio 0.95 \

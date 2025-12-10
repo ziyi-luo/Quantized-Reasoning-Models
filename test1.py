@@ -5,6 +5,7 @@
 import gc
 
 import torch
+import torch_npu
 
 from vllm import LLM, SamplingParams
 from vllm.distributed.parallel_state import (destroy_distributed_environment,
@@ -20,7 +21,7 @@ def clean_up():
     torch.npu.empty_cache()
     
 # 模型名称（可以换成本地路径或 HuggingFace Hub 的模型名）
-model_name = "PATH_TO_MODEL"
+model_name = "./outputs/modelzoo/flatquant/QwQ-32B-flatquant-w8a8kv8-tp4"
 
 prompts = [
     "Hello, my name is",

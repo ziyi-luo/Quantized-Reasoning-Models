@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import torch
+import torch_npu
 from tqdm import tqdm
 
 from lighteval.data import GenerativeTaskDataset, LoglikelihoodDataset

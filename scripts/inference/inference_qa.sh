@@ -6,7 +6,7 @@ devices=$2      # 0,1,2,3
 seed=${3:-42}   # 42 / 43 / 44
 
 for dataset in "${datasets[@]}"; do
-    CUDA_VISIBLE_DEVICES=${devices} \
+    ASCEND_RT_VISIBLE_DEVICES=${devices} \
     python -m inference_qa \
         --model $model_path \
         --dataset $dataset \

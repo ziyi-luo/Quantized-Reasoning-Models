@@ -2,6 +2,7 @@ import json
 import random
 
 import torch
+import torch_npu
 import transformers
 from datasets import load_dataset, Dataset
 

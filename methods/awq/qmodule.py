@@ -1,4 +1,5 @@
-import torch.nn as nn
+import torch
+import torch_npu.nn as nn
 
 
 class ScaledActivation(nn.Module):

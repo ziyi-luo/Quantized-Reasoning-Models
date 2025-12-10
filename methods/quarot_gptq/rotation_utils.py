@@ -2,6 +2,7 @@ import tqdm, math
 import typing
 
 import torch
+import torch_npu
 from fast_hadamard_transform import hadamard_transform
 
 from ..utils import utils

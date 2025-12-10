@@ -11,7 +11,7 @@
 ## 环境配置
 这是使用华为昇腾910B进行测试的npu适配版本，基于vllm_ascend镜像进行docker构建和环境配置。具体的环境配置如下：
 ```shell
-cd /PATH/Quantized-Reasoning-Models
+cd /data/disk2/modelzoo/Quantized-Reasoning-Models
 # 创建容器
 bash docker_start.sh
 ```
@@ -25,23 +25,27 @@ bash docker_start.sh
 ### 量化
 ```shell
 # awq方法，需要修改参数请到对应的awq.sh文件
-nohup bash scripts/quantization/awq.sh /PATH/DeepSeek-R1-Distill-Qwen-7B 4 0 > output_awq.log 2>&1 &
+nohup bash scripts/quantization/awq.sh /data/disk2/modelzoo/QwQ-32B 4 0 > QwQ32B_awq.log 2>&1 &
 # gptq方法，需要修改参数请到对应的gptq.sh文件
-nohup bash scripts/quantization/gptq.sh /PATH/DeepSeek-R1-Distill-Qwen-7B 4 0 > output_gptq.log 2>&1 &
+nohup bash scripts/quantization/gptq.sh /data/disk2/modelzoo/QwQ-32B 4 0 > QwQ32B_gptq.log 2>&1 &
 # smoothquant方法，需要修改参数请到对应的smoothquant.sh文件
-nohup bash scripts/quantization/smoothquant.sh /PATH/DeepSeek-R1-Distill-Qwen-7B 4 0 > output_smoothquant.log 2>&1 &
+nohup bash scripts/quantization/smoothquant.sh /data/disk2/modelzoo/QwQ-32B 4 0 > QwQ32B_smoothquant.log 2>&1 &
 # flatquant方法，需要修改参数请到对应的flatquant.sh文件
-nohup bash scripts/quantization/flatquant.sh /PATH/DeepSeek-R1-Distill-Qwen-7B 4 0 > output_flatquant.log 2>&1 &
+nohup bash scripts/quantization/flatquant.sh /data/disk2/modelzoo/QwQ-32B 4 0 > QwQ32B_flatquant.log 2>&1 &
 ```
 量化后模型默认保存到 ./outputs/modelzoo/method_name/ 文件夹
 ### 评测
 ## 推理数据集评测
 ```shell
 # 评测该代码库量化后的模型只需要更改模型读取路径，可以添加参数seed来改变随机数种子，默认seed=42
-nohup bash scripts/inference/inference.sh /PATH/DeepSeek-R1-Distill-Qwen-7B 0,1,2,3 > output_test.log 2>&1 &
-nohup bash scripts/inference/inference.sh ./outputs/modelzoo/flatquant/DeepSeek-R1-Distill-Qwen-7B-flatquant-w8a8kv8-tp4 0,1,2,3 > output_test.log 2>&1 &
+nohup bash scripts/inference/inference.sh /data/disk1/modelzoo/QwQ-32B 0,1,2,3 > QwQ32B_noquant_gpqa.log 2>&1 &
+nohup bash scripts/inference/inference.sh /data/disk2/Quantized-Reasoning-Models/outputs/modelzoo/awq/QwQ-32B-awq-w4g128-tp4 0,1,2,3 > QwQ32B_awq-w4g128-reason.log 2>&1 &
+nohup bash scripts/inference/inference.sh /data/disk2/Quantized-Reasoning-Models/outputs/modelzoo/gptq/QwQ-32B-gptq-w4g128-tp4 0,1,2,3 > QwQ32B_gptq-w4g128-reason.log 2>&1 &
+nohup bash scripts/inference/inference.sh ./outputs/modelzoo/flatquant/DeepSeek-R1-Distill-Qwen-1.5B-flatquant-w8a8kv8-tp4 0,1,2,3 > DsQwen1.5B_flat-w8a8kv8-reason_optimize_Activationquant.log 2>&1 &
+nohup bash scripts/inference/inference.sh ./outputs/modelzoo/flatquant/QwQ-32B-flatquant-w8a8kv8-tp4 0,1,2,3 > QwQ32B_flatquant-w8a8kv8-reason.log 2>&1 &
+nohup bash scripts/inference/inference.sh ./outputs/modelzoo/flatquant/QwQ-32B-flatquant-w4a4kv4-tp4 0,1,2,3 > QwQ32B_flatquant-w4a4kv4-reason.log 2>&1 &
 # 添加随机数种子的示例
-nohup bash scripts/inference/inference.sh /PATH/DeepSeek-R1-Distill-Qwen-7B 0,1,2,3 43 > output_test.log 2>&1 &
+nohup bash scripts/inference/inference.sh /data/disk2/modelzoo/QwQ-32B 0,1,2,3 43 > output_test.log 2>&1 &
 ```
 完成全部评测后可以将结果通过表格的形式进行打印，如果原模型文件没有存在项目目录中，请修改make_stats_table.py文件中line 90为：
 ```shell
@@ -51,10 +55,10 @@ modelzoo_dir = "root_path_to_your_model"
 
 之后正常使用表格生成的代码：
 ```shell
-python -m make_stats_table --stats acc --models DeepSeek-R1-Distill-Qwen-7B --methods "" --seeds 42        # 测试准确率
-python -m make_stats_table --stats length --models DeepSeek-R1-Distill-Qwen-7B --methods "" --seeds 42     # 测试所需的推理长度
+python -m make_stats_table --stats acc --models QwQ-32B --methods "" --seeds 42        # 测试准确率
+python -m make_stats_table --stats length --models QwQ-32B --methods "" --seeds 42     # 测试所需的推理长度
 # 测试量化后自动保存的模型，示例如下
-python -m make_stats_table --stats acc --models DeepSeek-R1-Distill-Qwen-7B --methods flatquant-w4a4kv4 --seeds 42 
+python -m make_stats_table --stats acc --models QwQ-32B --methods flatquant-w4a4kv4 --seeds 42 
 ```
 
 评测结果会默认保存到 ./outputs/inference/ 文件夹下。
@@ -63,10 +67,10 @@ python -m make_stats_table --stats acc --models DeepSeek-R1-Distill-Qwen-7B --me
 参考FlatQuant库中选取的问答数据集，添加了使用lighteval库进行问答测试的代码。现在可以像测试推理数据集一样，方便地测试问答数据集了。相关的代码文件在inference_qa.py中，命令文件在./scripts/inference_qa.sh文件中，具体数据集的lighteval配置文件在./lighteval_custom/tasks/qa.py 文件中。具体的使用方法与推理数据集评测类似：
 ```shell
 # 评测该代码库量化后的模型只需要更改模型读取路径，可以添加参数seed来改变随机数种子，默认seed=42
-nohup bash scripts/inference/inference_qa.sh /PATH/Meta-Llama-3-8B 0,1,2,3 > output_test_qa.log 2>&1 &
+nohup bash scripts/inference/inference_qa.sh /data/disk2/modelzoo/Meta-Llama-3-8B 0,1,2,3 > output_test_qa.log 2>&1 &
 nohup bash scripts/inference/inference_qa.sh ./outputs/modelzoo/flatquant/Meta-Llama-3-8B-flatquant-w8a8kv8-tp4 0,1,2,3 > output_test_qa.log 2>&1 &
 # 添加随机数种子的示例
-nohup bash scripts/inference/inference_qa.sh /PATH/Meta-Llama-3-8B 0,1,2,3 43 > output_test_qa.log 2>&1 &
+nohup bash scripts/inference/inference_qa.sh /data/disk2/modelzoo/Meta-Llama-3-8B 0,1,2,3 43 > output_test_qa.log 2>&1 &
 ```
 
 需要补充说明的是，在问答数据集测试中，为了适配Llama-3-8B模型，设置了use_chat_template=False，具体的说明在inference_qa.py line 150。该参数在推理数据集评测中设置为True。
@@ -92,9 +96,9 @@ gptq.sh 中使用的是quarot_gptq.py不做旋转操作的代码，QuaRot方法�
 ### SmoothQuant
 进行smoothquant量化前，请先构造基于NuminaMath-1.5的校准数据集：
   ```shell
-  bash scripts/data/gen_calib.sh /data/disk1/modelzoo/DeepSeek-R1-Distill-Qwen-7B 0,1,2,3
+  bash scripts/data/gen_calib.sh /data/disk2/modelzoo/QwQ-32B 0,1,2,3
   ```
-校准数据集会自动存放到 ./datasets/gen_data/DeepSeek-R1-Distill-Qwen-7B/NuminaMath-1.5.jsonl 路径下，由代码在后续过程中自主读取。
+校准数据集会自动存放到 ./datasets/gen_data/QwQ-32B/NuminaMath-1.5.jsonl 路径下，由代码在后续过程中自主读取。
 ### FlatQuant
 在FlatQuant方法中，如果需要不进行最后一层的量化，请按如下说明修改代码：
 * ./methods/flatquant/flatquant/train_utils.py line 99:

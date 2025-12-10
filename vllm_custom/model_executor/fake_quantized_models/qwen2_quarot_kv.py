@@ -25,6 +25,7 @@ import math
 from typing import Iterable, List, Optional, Set, Tuple, Union
 
 import torch
+import torch_npu
 from torch import nn
 from transformers import Qwen2Config
 import fast_hadamard_transform

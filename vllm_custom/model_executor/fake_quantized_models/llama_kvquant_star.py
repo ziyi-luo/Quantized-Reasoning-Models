@@ -23,6 +23,7 @@
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 
 import torch
+import torch_npu
 from torch import nn
 from transformers import LlamaConfig
 

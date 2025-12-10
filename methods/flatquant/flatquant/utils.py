@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import torch
+import torch_npu
 import transformers
 
 import logging

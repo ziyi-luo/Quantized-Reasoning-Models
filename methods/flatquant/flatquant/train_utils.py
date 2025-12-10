@@ -5,6 +5,7 @@ import functools
 from contextlib import nullcontext
 
 import torch
+import torch_npu
 import torch.nn as nn
 
 from .function_utils import set_require_grad_all, get_n_set_parameters_byname, get_paras_dict_by_name, check_params_grad

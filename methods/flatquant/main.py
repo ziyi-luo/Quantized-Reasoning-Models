@@ -1,6 +1,7 @@
 import os
 
 import torch
+import torch_npu
 import transformers
 
 from ..utils import data_utils

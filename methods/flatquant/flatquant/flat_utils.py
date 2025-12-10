@@ -1,5 +1,6 @@
 import os
 import torch
+import torch_npu
 import logging
 
 from .function_utils import get_paras_dict_by_name
