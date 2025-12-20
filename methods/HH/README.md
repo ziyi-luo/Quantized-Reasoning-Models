@@ -14,22 +14,34 @@ This directory contains the implementation of the Householder Quantization metho
 *   **`hh_model_utils.py`**: Utilities to replace model layers with HH versions (`apply_hh_to_qwen`), reparameterize the model, and managed devices.
 
 ### Verification & Training
-*   **`verify_on_real_model.py`**: The main script for verifying the method on real models (e.g., DeepSeek-R1-Distill-Qwen-1.5B). It performs:
-    *   Layer-wise calibration using real data (WikiText-2).
-    *   Initialization of HH parameters via SVD/PCA on activations.
-    *   Optimization of rotation parameters using AdamW to minimize layer-wise reconstruction error (MSE).
-*   **`optimization.py`** / **`hh_train_utils.py`**: (Optional) Helper modules for the training loop and optimization logic.
+*   **`verify_on_real_model.py`**: Self-contained verification script that exercises the first layers of DeepSeek-R1-Distill-Qwen. It:
+    * Captures layer-0 inputs through a catcher module to ensure rotary/positional state is preserved.
+    * Loads WikiText-2 (fallbacks to random tokens if the dataset is unavailable) for calibration.
+    * Initializes Householder rotations via PCA on observed activations (selecting the smallest h that explains ≥95% variance), calibrates quantizers, and optimizes rotations to reduce layer-wise MSE without introducing NaNs.
+    * Reports baseline vs. final MSE per layer so regressions are easy to spot.
+*   **`optimization.py`** / **`hh_train_utils.py`**: Helper modules for end-to-end training and scaling logic.
 
-## Usage
-
-To verify the method on a real model:
+## Verification quickstart
 
 ```bash
-python verify_on_real_model.py
+python methods/HH/verify_on_real_model.py \
+  --model-path deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+  --nsamples 8 \
+  --cali-bsz 2 \
+  --num-layers 2
 ```
 
-This script will:
-1.  Load the model and WikiText-2 calibration data.
-2.  Iterate through the first few layers.
-3.  Optimize Householder rotations to align the activation space with quantization grid.
-4.  Report the Mean Squared Error (MSE) improvement.
+Key flags:
+
+* `--model-path`: Hugging Face repo or local checkpoint for a Qwen-based DeepSeek model. An environment variable `DEEPSEEK_MODEL_PATH` is also respected.
+* `--nsamples` / `--cali-bsz` / `--max-seq-len`: Control calibration volume to fit the available GPU memory.
+* `--steps` / `--lr`: Tune Householder optimization effort; defaults are conservative for quick runs.
+* `--reflections`: Number of Householder reflections per rotation (applied to QKV, O, and MLP projections).
+
+What the script checks:
+
+1. The catcher mechanism collects the correct hidden states and positional kwargs for the first layer.
+2. WikiText-2 loading works (with a random-data fallback for offline runs).
+3. Layer-wise optimization reduces reconstruction MSE on the first `--num-layers` without producing NaNs; final metrics are logged per layer.
+
+Use `--device cuda:0` to pin execution to a specific GPU or rely on automatic selection.
