@@ -4,6 +4,7 @@ Matches the structure of FlatQuant's qwen_utils.py.
 """
 import torch
 import torch.nn as nn
+from typing import Optional
 from .hh_linear import HHLinear
 from .hh_modules import HouseholderRotation
 from transformers.models.qwen2.modeling_qwen2 import Qwen2MLP, Qwen2Attention, apply_rotary_pos_emb, repeat_kv
@@ -64,6 +65,21 @@ class HHQwen2MLP(nn.Module):
         self.up_proj.reparameterize()
         self.gate_proj.reparameterize()
         self.down_proj.reparameterize()
+
+    def fuse_up_gate_scale(self, target_norm: Optional[nn.LayerNorm] = None):
+        """
+        Absorb the shared scale into a LayerNorm (OSTQuant-style) so that the
+        Householder rotation stays orthogonal during inference.
+        """
+        with torch.no_grad():
+            scale = self.up_gate_scale.detach().clone()
+            self.up_proj.reparameterize()
+            self.gate_proj.reparameterize()
+            self.up_proj.strip_scale(scale)
+            self.gate_proj.strip_scale(scale)
+            if target_norm is not None:
+                target_norm.weight.mul_(scale.to(target_norm.weight))
+            self.up_gate_scale.data.fill_(1.0)
 
 class HHQwen2Attention(nn.Module):
     def __init__(self, args, module: Qwen2Attention, n_reflections_qkv: int, n_reflections_o: int):
@@ -221,3 +237,20 @@ class HHQwen2Attention(nn.Module):
         self.k_proj.reparameterize()
         self.v_proj.reparameterize()
         self.o_proj.reparameterize()
+
+    def fuse_qkv_scale(self, target_norm: Optional[nn.LayerNorm] = None):
+        """
+        Absorb the shared activation scale into a preceding LayerNorm, leaving
+        the rotation orthogonal for inference.
+        """
+        with torch.no_grad():
+            scale = self.qkv_scale.detach().clone()
+            self.q_proj.reparameterize()
+            self.k_proj.reparameterize()
+            self.v_proj.reparameterize()
+            self.q_proj.strip_scale(scale)
+            self.k_proj.strip_scale(scale)
+            self.v_proj.strip_scale(scale)
+            if target_norm is not None:
+                target_norm.weight.mul_(scale.to(target_norm.weight))
+            self.qkv_scale.data.fill_(1.0)

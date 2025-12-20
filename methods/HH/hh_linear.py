@@ -199,6 +199,23 @@ class HHLinear(nn.Module):
             inv_scale = 1.0 / (self.scale + 1e-6)
             return w_rot * inv_scale
 
+    def strip_scale(self, scale_vec: torch.Tensor):
+        """
+        Remove activation scaling from the rotation so that the scale
+        can be fused into preceding modules (e.g., LayerNorm weights).
+        This keeps the WY buffers consistent and avoids double-scaling.
+        """
+        with torch.no_grad():
+            if torch.allclose(self.rotation.scale_buffer, torch.ones_like(self.rotation.scale_buffer)):
+                return
+            scale_flat = scale_vec.view(-1, 1).to(self.rotation.Y_scaled)
+            self.rotation.Y_scaled.div_(scale_flat)
+            self.rotation.scale_buffer.fill_(1.0)
+            if self.owns_scale:
+                self.scale.data.fill_(1.0)
+            else:
+                self.scale.fill_(1.0)
+
     def export_wy_and_scale(self):
         """Export WY params and the merged scale for inference."""
         W, Y = self.rotation.export_wy()
